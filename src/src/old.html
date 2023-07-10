@@ -1,0 +1,242 @@
+
+<html>
+<head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/pixi.js/4.7.1/pixi.min.js"></script>
+<script src="jxPhysics.js?1533512382"></script>
+<style type="text/css">
+BODY {
+  padding: 0px;
+  margin: 0px;
+}
+</style>
+</head>
+<body>
+
+<script language="javascript">
+var $P = jxPhysics;
+var $NV = $P.NullVector;
+
+var width = $(window).width();
+var height = $(window).height();
+
+var FACT_A = 100000;
+var FACT_V = 200;
+var FACT_L = 5;
+
+var G = 1;
+
+// G = 6.67408e-11;
+
+var SCALE = 1/64;
+var CTR_X, CTR_Y;
+
+var app = new PIXI.Application (width, height, { antialias: true });
+
+document.body.appendChild(app.view);
+
+$(app.view).on('mousewheel', function (e) {
+  var evt = e.originalEvent;
+
+  // scroll down = zoom out
+  if (evt.wheelDeltaY < 0) {
+    SCALE /= 1.2;
+  }
+
+  // scroll up = zoom in
+  else if (evt.wheelDeltaY > 0) {
+    SCALE *= 1.2;
+  }
+
+  app.stage.setTransform(CTR_X, CTR_Y, SCALE, -SCALE);
+});
+
+app.stage.interactive = true;
+
+app.stage.setTransform(CTR_X = app.view.width/2, CTR_Y = app.view.height/2, SCALE, -SCALE);
+
+paths = new PIXI.Graphics ().lineStyle(FACT_L*5, 0xffffff, 1);
+app.stage.addChild(paths);
+
+vectors = new PIXI.Graphics ();
+app.stage.addChild(vectors);
+
+var EARTH = new $P.Mass ({
+  mass: 100
+, shape: new $P.Circle (80)
+, position: new $P.Vector (100000,0)
+, eccentricity: 0.0167086
+});
+
+var SUN = new $P.Mass ({
+  mass: EARTH.mass * 333060.402
+, shape: new $P.Circle (EARTH.shape.radius * 109/8)
+, position: new $P.Vector (0,0)
+});
+
+var MERCURY = new $P.Mass ({
+  mass: EARTH.mass * 0.0553
+, shape: new $P.Circle (EARTH.shape.radius * 0.383)
+, position: EARTH.position.scale(0.387)
+, eccentricity: EARTH.eccentricity * 12.3
+});
+
+var VENUS = new $P.Mass ({
+  mass: EARTH.mass * 0.815
+, shape: new $P.Circle (EARTH.shape.radius * 0.949)
+, position: EARTH.position.scale(0.723)
+, eccentricity: EARTH.eccentricity * 0.401
+});
+
+var MOON = new $P.Mass ({
+  mass: EARTH.mass * 0.0123
+, shape: new $P.Circle (EARTH.shape.radius * 0.2724)
+, position: EARTH.position.scale(1 + 1.4*.00257)
+, eccentricity: EARTH.eccentricity * 3.29
+});
+
+var MARS = new $P.Mass ({
+  mass: EARTH.mass * 0.107
+, shape: new $P.Circle (EARTH.shape.radius * 0.532)
+, position: EARTH.position.scale(1.52)
+, eccentricity: EARTH.eccentricity * 5.6
+});
+
+var JUPITER = new $P.Mass ({
+  mass: EARTH.mass * 317.8
+, shape: new $P.Circle (EARTH.shape.radius * 11.21)
+, position: EARTH.position.scale(5.20)
+, eccentricity: EARTH.eccentricity * 2.93
+});
+
+var SATURN = new $P.Mass ({
+  mass: EARTH.mass * 95.2
+, shape: new $P.Circle (EARTH.shape.radius * 9.45)
+, position: EARTH.position.scale(9.58)
+, eccentricity: EARTH.eccentricity * 3.38
+});
+
+var URANUS = new $P.Mass ({
+  mass: EARTH.mass * 14.5
+, shape: new $P.Circle (EARTH.shape.radius * 4.01)
+, position: EARTH.position.scale(19.2)
+, eccentricity: EARTH.eccentricity * 2.74
+});
+
+var NEPTUNE = new $P.Mass ({
+  mass: EARTH.mass * 17.1
+, shape: new $P.Circle (EARTH.shape.radius * 3.88)
+, position: EARTH.position.scale(30.05)
+, eccentricity: EARTH.eccentricity * 0.677
+});
+
+var MASSES = [ SUN, MERCURY, VENUS, EARTH, MOON, MARS, JUPITER, SATURN, URANUS, NEPTUNE ];
+var TOTAL_MASS = (function () { var m = 0; for (i in MASSES) m += MASSES[i].mass; return m; })();
+var CENTER_OF_MASS = (function () { var cm = 0; for (i in MASSES) cm + MASSES[i].mass * MASSES[i].pos.c[0]; return cm/TOTAL_MASS; })();
+
+for (i in MASSES) {
+  var m = MASSES[i];
+  if (m == SUN) continue;
+
+  // mean orbital speed
+  m.vel = new $P.Vector (0, Math.sqrt(G * TOTAL_MASS / (m.pos.c[0] - CENTER_OF_MASS)));
+
+  // precise orbital speed
+  m.vel = new $P.Vector (0, Math.sqrt(G * TOTAL_MASS * ((2 / (m.pos.c[0] - CENTER_OF_MASS)) - (1 / (m.pos.c[0] - CENTER_OF_MASS) * (1 + 1.2*m.eccentricity)))));
+}
+
+/*
+m2.vel = new $P.Vector (0, Math.sqrt(G * m1.mass * (2/5000 - 1/6000)));
+m3.vel = new $P.Vector (0, Math.sqrt(G * (m1.mass + m2.mass) / ((m1.mass * 5350 + m2.mass * 350)/(m1.mass + m2.mass))));
+m4.vel = new $P.Vector (0, Math.sqrt(G * (m1.mass + m2.mass + m3.mass) * (2/8000 - 1/9000)));
+m5.vel = new $P.Vector (0, Math.sqrt(G * (m1.mass + m2.mass + m3.mass + m4.mass) * (2/28000 - 1/26000)));
+*/
+  
+
+for (i in MASSES) app.stage.addChild(MASSES[i].draw('PIXI'));
+
+var s = 0.75;
+var frame = -1;
+var focus = 3;
+
+var iters = 0;
+var per = 10;
+
+setInterval(function () {
+ for (n = 0; n < per; n++) {
+  ++iters;
+  var accs = [];
+  vectors.clear();
+
+  for (i in MASSES) {
+    accs[i] = { net: $NV(2), rel: [] };
+
+    for (j in MASSES) {
+      if (i == j) continue;
+      var dist = MASSES[i].pos.subtract(MASSES[j].pos); // distance from i to j
+      accs[i].rel[j] = acceleration_due_to_gravity(MASSES[i], MASSES[j], G);
+      accs[i].net = accs[i].net.add(accs[i].rel[j]);
+    }
+  }
+
+  if (frame > -1) {
+    for (i in MASSES) {
+      if (i == frame) continue;
+      MASSES[i].vel = MASSES[i].vel.subtract(MASSES[frame].vel);
+    }
+
+    MASSES[frame].vel = $NV(2);
+  }
+
+  for (i in MASSES) {
+    var x = MASSES[i];
+    paths.moveTo(x.pos.c[0], x.pos.c[1]);
+
+    x.acc = accs[i].net;
+
+    // euler's method
+    if (1) {
+      x.vel = x.vel.add(x.acc.scale(s));
+      x.pos = x.pos.add(x.vel.scale(s));
+    }
+
+    // verlet method
+    else {
+      x.pos = x.pos.add(x.vel.scale(s)).add(x.acc.scale(0.5 * s * s));
+      x.vel = x.vel.add(x.acc.scale(s));
+    }
+
+    // trace path
+    paths.lineStyle(FACT_L*5, 0xffffff, 1).lineTo(x.pos.c[0], x.pos.c[1]);
+
+    // draw acceleration vectors
+    for (r in accs[i].rel) vectors.lineStyle(FACT_L*10, 0x00ffff, 1).moveTo(x.pos.c[0], x.pos.c[1]).lineTo(x.pos.c[0] + FACT_A*accs[i].rel[r].c[0], x.pos.c[1] + FACT_A*accs[i].rel[r].c[1]);
+    vectors.lineStyle(FACT_L*20, 0x88ff88, 1).moveTo(x.pos.c[0], x.pos.c[1]).lineTo(x.pos.c[0] + FACT_A*x.acc.c[0], x.pos.c[1] + FACT_A*x.acc.c[1]);
+
+    // draw velocity vector
+    vectors.lineStyle(FACT_L*5, 0xffff00, 1).moveTo(x.pos.c[0], x.pos.c[1]).lineTo(x.pos.c[0] + FACT_V*x.vel.c[0], x.pos.c[1] + FACT_V*x.vel.c[1]);
+
+    // draw line from body to sun
+    // if (iters % 2500 == 0) paths.moveTo(x.pos.c[0], x.pos.c[1]).lineStyle(FACT_L*5, x.color, 1).lineTo(MASSES[0].pos.c[0], MASSES[0].pos.c[1]);
+
+    // render body
+    x.draw('PIXI');
+
+    if (focus == i) app.stage.setTransform(CTR_X = app.view.width/2 - x.pos.c[0]*SCALE, CTR_Y = app.view.height/2 + x.pos.c[1]*SCALE, SCALE, -SCALE);
+  }
+ }
+}, 2);
+
+
+function acceleration_due_to_gravity (m, M, G) {
+  var d = M.pos.subtract(m.pos);
+  var r = d.magnitude;
+  var a = G * M.m / Math.pow(r, 2);
+
+  return d.scale(a / r);
+}
+
+</script>
+
+</body>
+</html>
