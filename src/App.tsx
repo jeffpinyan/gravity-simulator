@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import * as CONSTANTS from "./lib/jxphysics";
 import { EARTH, MOON, SUN } from "./lib/jxphysics/solar-system";
