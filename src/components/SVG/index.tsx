@@ -1,8 +1,9 @@
-import { LegacyRef, PropsWithChildren, ReactNode } from "react";
+import React, { LegacyRef, PropsWithChildren } from "react";
+import { Vector2 } from "../../classes/Vector/Vector2";
 
-type num2 = [number, number];
+type num2 = Vector2;
 
-const x0y0: num2 = [0, 0];
+const x0y0: num2 = new Vector2(0, 0);
 
 type xyProp = {
   xy: num2;
@@ -13,11 +14,11 @@ type sizeProp = {
 };
 
 type fromProp = {
-  from: num2;
+  start: num2;
 };
 
 type toProp = {
-  to: num2;
+  finish: num2;
 };
 
 type rProp = {
@@ -32,20 +33,13 @@ type hrefProp = {
   href: string;
 };
 
-type SVGProps = {
-  width: string;
-  height: string;
-  forwardRef: LegacyRef<SVGSVGElement>;
-  [key: string]: any;
-};
-
 export function SVG({
   children,
   width = "100%",
   height = "100%",
   forwardRef,
   ...props
-}: SVGProps & PropsWithChildren) {
+}: React.SVGProps<SVGSVGElement> & { forwardRef: LegacyRef<SVGSVGElement> }) {
   return (
     <svg
       ref={forwardRef}
@@ -61,41 +55,35 @@ export function SVG({
   );
 }
 
-export function Defs({ children, ...props }: PropsWithChildren) {
+export function Defs({ children, ...props }: React.SVGProps<SVGDefsElement> & PropsWithChildren) {
   return <defs {...props}>{children}</defs>;
 }
 
-export function G({ children, ...props }: PropsWithChildren) {
+export function G({ children, ...props }: React.SVGProps<SVGGElement> & PropsWithChildren) {
   return <g {...props}>{children}</g>;
 }
 
-type UseProps = PropsWithChildren & xyProp & hrefProp;
-
-export function Use({ href, xy = x0y0, ...props }: UseProps) {
-  return <use href={href} x={xy[0]} y={xy[1]} {...props} />;
+export function Use({ href, xy = x0y0, ...props }: React.SVGProps<SVGUseElement> & xyProp & hrefProp) {
+  return <use href={href} x={xy.x} y={xy.y} {...props} />;
 }
 
-type PatternProps = PropsWithChildren & xyProp & sizeProp;
-
-export function Pattern({ xy = x0y0, size, children, ...props }: PatternProps) {
+export function Pattern({ xy = x0y0, size, children, ...props }: React.SVGProps<SVGPatternElement> & xyProp & sizeProp) {
   return (
-    <pattern x={xy[0]} y={xy[1]} width={size[0]} height={size[1]} {...props}>
+    <pattern x={xy.x} y={xy.y} width={size.x} height={size.y} {...props}>
       {children}
     </pattern>
   );
 }
 
-type LineProps = PropsWithChildren & fromProp & toProp;
-
-export function Line({ from = x0y0, to, ...props }: LineProps) {
-  return <line x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]} {...props} />;
+export function Line({ start, finish, ...props }: React.SVGProps<SVGLineElement> & fromProp & toProp) {
+  return <line x1={start.x} y1={start.y} x2={finish.x} y2={finish.y} {...props} />;
 }
 
-export function Polyline({ ...props }: PropsWithChildren) {
+export function Polyline({ ...props }: React.SVGProps<SVGPolylineElement>) {
   return <polyline {...props} />;
 }
 
-export function Polygon({ ...props }: PropsWithChildren) {
+export function Polygon({ ...props }: React.SVGProps<SVGPolygonElement>) {
   return <polygon {...props} />;
 }
 
@@ -106,33 +94,29 @@ export function Rect({ xy = x0y0, size, r, ...props }: RectProps) {
     props.rx = r;
   }
   return (
-    <rect x={xy[0]} y={xy[1]} width={size[0]} height={size[1]} {...props} />
+    <rect x={xy.x} y={xy.y} width={size.x} height={size.y} {...props} />
   );
 }
 
-type CircleProps = PropsWithChildren & xyProp & rProp;
-
-export function Circle({ xy = x0y0, r, ...props }: CircleProps) {
-  return <circle cx={xy[0]} cy={xy[1]} r={r} {...props} />;
+export function Circle({ xy = x0y0, r, ...props }: React.SVGProps<SVGCircleElement> & xyProp & rProp) {
+  return <circle cx={xy.x} cy={xy.y} r={r} {...props} />;
 }
 
-export function Mask({ children, ...props }: PropsWithChildren) {
+export function Mask({ children, ...props }: React.SVGProps<SVGMaskElement>) {
   return <mask {...props}>{children}</mask>;
 }
 
-export function Path({ ...props }: PropsWithChildren) {
+export function Path({ ...props }: React.SVGProps<SVGPathElement>) {
   return <path {...props} />;
 }
 
-export function ClipPath({ children, ...props }: PropsWithChildren) {
+export function ClipPath({ children, ...props }: React.SVGProps<SVGClipPathElement>) {
   return <clipPath {...props}>{children}</clipPath>;
 }
 
-type TextProps = PropsWithChildren & xyProp;
-
-export function Text({ xy = x0y0, children, ...props }: TextProps) {
+export function Text({ xy = x0y0, children, ...props }: React.SVGProps<SVGTextElement> & xyProp) {
   return (
-    <text x={xy[0]} y={xy[1]} {...props}>
+    <text x={xy.x} y={xy.y} {...props}>
       {children}
     </text>
   );

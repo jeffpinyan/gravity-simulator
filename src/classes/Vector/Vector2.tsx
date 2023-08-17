@@ -31,7 +31,7 @@ export class Vector2 {
     return this.x * v.x + this.y * v.y;
   }
 
-  magnitude() {
+  get magnitude() {
     return Math.sqrt(this.dot(this));
   }
 
@@ -43,11 +43,11 @@ export class Vector2 {
     return this.scale(scale && 1 / scale);
   }
 
-  normalize() {
-    return this.divide(this.magnitude());
+  get normalize() {
+    return this.divide(this.magnitude);
   }
 
   angleBetween(v: Vector2) {
-    return Math.acos(this.dot(v) / (this.magnitude() * v.magnitude()));
+    return Math.acos(this.dot(v) / (this.magnitude * v.magnitude));
   }
 }

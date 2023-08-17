@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Vector2 } from "../classes/Vector/Vector2";
 
 type MouseProviderProps = {
   render?: Function;
@@ -18,9 +19,11 @@ type MouseProviderProps = {
 
 type MouseEvents = Record<string, MouseEventHandler>;
 
-type MouseContextType = {
-  X: number;
-  Y: number;
+export type MouseContextType = {
+  xy: Vector2;
+  x: number;
+  y: number;
+  offset: Vector2;
   offsetX: number;
   offsetY: number;
   buttons: number;
@@ -58,23 +61,25 @@ export function MouseProvider({
 }
 
 export function useMouse(): MouseContextType {
-  const [XY, setXY] = useState<[number, number]>([null!, null!]);
-  const [offsetXY, setOffsetXY] = useState<[number, number]>([null!, null!]);
+  const [XY, setXY] = useState<Vector2>(null!);
+  const [offsetXY, setOffsetXY] = useState<Vector2>(null!);
   const [buttons, setButtons] = useState<number>(0);
   const update: MouseEventHandler = useCallback(
     (ev: MouseEvent) => {
-      setXY([ev.pageX, ev.pageY]);
-      setOffsetXY([ev.nativeEvent.offsetX, ev.nativeEvent.offsetY]);
+      setXY(new Vector2(ev.pageX, ev.pageY));
+      setOffsetXY(new Vector2(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY));
       setButtons(ev.buttons);
     },
     [setXY, setOffsetXY, setButtons]
   );
 
   return {
-    X: XY[0],
-    Y: XY[1],
-    offsetX: offsetXY[0],
-    offsetY: offsetXY[1],
+    xy: XY,
+    x: XY?.x,
+    y: XY?.y,
+    offset: offsetXY,
+    offsetX: offsetXY?.x,
+    offsetY: offsetXY?.y,
     buttons,
     buttonLeft: buttons & 1,
     buttonRight: buttons & 2,
